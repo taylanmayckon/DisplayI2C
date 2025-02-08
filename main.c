@@ -20,9 +20,16 @@
 #define OUTPUT_MASK ((1 << LED_RED) | (1 << LED_GREEN) | (1 << LED_BLUE))
 // Máscara para GPIO dos botões
 #define INPUT_MASK ((1 << BUTTON_A) | (1 << BUTTON_B))
+// Pino da matriz de LEDs 
+#define LED_MATRIX_PIN 7
+#define IS_RGBW false
 
 // Variável que armazena o tempo do último evento (em us)
 static volatile uint32_t last_time = 0;
+
+// Variáveis da PIO declaradas no escopo global
+PIO pio;
+uint sm;
 
 // Função de interrupção da GPIO
 void gpio_irq_handler(uint gpio, uint32_t events){
@@ -84,7 +91,20 @@ int main(){
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(BUTTON_B, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
+    // Inicialização da PIO utilizada
+    pio = pio0;
+    sm = 0;
+    uint offset = pio_add_program(pio, &ws2812_program);
+    ws2812_program_init(pio, sm, offset, LED_MATRIX_PIN, 800000, IS_RGBW);
+
     while (true) {
+        // Recebimento dos caracteres via UART
+        char entrada;
+        scanf("%c", &entrada);
+        
+        // Atualiza MATRIZ DE LEDS, se for entrada numérica
+        atualiza_numero(entrada);
+        
         sleep_ms(10); // Delay para reduzir o consumo de CPU
     }
 }
