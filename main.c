@@ -47,7 +47,7 @@ void gpio_irq_handler(uint gpio, uint32_t events){
                 printf("LED GREEN: ON\n");
             }
             else{
-                printf("LED_GREEN: OFF\n");
+                printf("LED GREEN: OFF\n");
             }
         }
 
