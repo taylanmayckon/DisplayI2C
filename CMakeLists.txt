@@ -35,10 +35,13 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(DisplayI2C main.c )
+add_executable(DisplayI2C main.c libs/led_matrix.c)
 
 pico_set_program_name(DisplayI2C "DisplayI2C")
 pico_set_program_version(DisplayI2C "0.1")
+
+# Adicionando o arquivo PIO
+pico_generate_pio_header(DisplayI2C ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(DisplayI2C 0)
@@ -46,17 +49,20 @@ pico_enable_stdio_usb(DisplayI2C 1)
 
 # Add the standard library to the build
 target_link_libraries(DisplayI2C
-        pico_stdlib)
+        pico_stdlib
+        hardware_pio
+        )
 
 # Add the standard include files to the build
 target_include_directories(DisplayI2C PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/libs
 )
 
 # Add any user requested libraries
 target_link_libraries(DisplayI2C 
         hardware_i2c
-        
+        hardware_pio
         )
 
 pico_add_extra_outputs(DisplayI2C)
