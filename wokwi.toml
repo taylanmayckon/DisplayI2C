@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/DisplayI2C.uf2'
+elf = 'build/DisplayI2C.elf'
