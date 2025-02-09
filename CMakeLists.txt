@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(DisplayI2C main.c libs/led_matrix.c)
+add_executable(DisplayI2C main.c libs/led_matrix.c libs/ssd1306.c)
 
 pico_set_program_name(DisplayI2C "DisplayI2C")
 pico_set_program_version(DisplayI2C "0.1")

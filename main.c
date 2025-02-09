@@ -2,13 +2,14 @@
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include "libs/led_matrix.h"
+#include "libs/ssd1306.h"
+#include "libs/font.h"
 
-// Definindo os pinos do I2C
+// Definindo os pinos do I2C e endereço do display
 #define I2C_PORT i2c1
 #define I2C_SDA 14
 #define I2C_SCL 15
-// Definindo o endereço do display 
-#define DISPLAY_ADRESS 0x3C
+#define DISPLAY_ADRESS 0x3C 
 // Definição dos botões
 #define BUTTON_A 5
 #define BUTTON_B 6
@@ -16,11 +17,8 @@
 #define LED_RED 13
 #define LED_GREEN 11
 #define LED_BLUE 12
-// Definição da máscara para ativar os LEDs RGB
-#define OUTPUT_MASK ((1 << LED_RED) | (1 << LED_GREEN) | (1 << LED_BLUE))
-// Máscara para GPIO dos botões
-#define INPUT_MASK ((1 << BUTTON_A) | (1 << BUTTON_B))
-// Pino da matriz de LEDs 
+#define OUTPUT_MASK ((1 << LED_RED) | (1 << LED_GREEN) | (1 << LED_BLUE)) // Definição da máscara para ativar os LEDs RGB
+#define INPUT_MASK ((1 << BUTTON_A) | (1 << BUTTON_B)) // Máscara para GPIO dos botões
 #define LED_MATRIX_PIN 7
 #define IS_RGBW false
 
@@ -76,12 +74,20 @@ int main(){
     // Garantindo o Pull up do I2C
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
+    // Configuração do display
+    ssd1306_t ssd; // Inicializa a estrutura do display
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, DISPLAY_ADRESS, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd); // Configura o display
+    ssd1306_send_data(&ssd); // Envia os dados para o display
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+    bool cor = true; // Booleano que indica a cor branca do pixel
 
     // Inicializando todos os pinos da máscara de OUTPUT
     gpio_init_mask(OUTPUT_MASK);
     // Definindo como saída
     gpio_set_dir_out_masked(OUTPUT_MASK);
-
     // Inicializando todos os pinos da máscara de INPUT
     gpio_init_mask(INPUT_MASK);
     // Definindo os botões como pull up
@@ -98,13 +104,20 @@ int main(){
     ws2812_program_init(pio, sm, offset, LED_MATRIX_PIN, 800000, IS_RGBW);
 
     while (true) {
+        // Atualização do display
+        ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor); // Desenha um retângulo
+        ssd1306_draw_string(&ssd, "TAYLAN MAYCKON", 8, 10); // Desenha uma string
+        ssd1306_draw_string(&ssd, "Caatronics", 20, 30); // Desenha uma string
+        ssd1306_draw_string(&ssd, "Zeri", 15, 48); // Desenha uma string      
+        ssd1306_send_data(&ssd); // Atualiza o display
+
         // Recebimento dos caracteres via UART
         char entrada;
         scanf("%c", &entrada);
-        
+
         // Atualiza MATRIZ DE LEDS, se for entrada numérica
         atualiza_numero(entrada);
         
-        sleep_ms(10); // Delay para reduzir o consumo de CPU
+        sleep_ms(1000); // Delay para reduzir o consumo de CPU
     }
 }
