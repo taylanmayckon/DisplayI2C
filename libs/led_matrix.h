@@ -18,6 +18,6 @@ uint32_t urgb_u32(double r, double g, double b);
 
 void set_one_led(uint8_t r, uint8_t g, uint8_t b);
 
-void atualiza_numero(char numero_char);
+void update_number(char numero_char);
 
 #endif

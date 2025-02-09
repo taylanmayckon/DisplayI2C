@@ -157,7 +157,7 @@ void set_one_led(uint8_t r, uint8_t g, uint8_t b){
 }
 
 // Função que faz as operações necessárias para atualizar o display
-void atualiza_numero(char numero_char){
+void update_number(char numero_char){
     // Realiza a verificação se foi entrada numérica
     for(int i=0; i<10; i++){
         if(numero_char == entradas_numericas[i]){ // Como é entrada char só vai ser chamado na única detecção que houver

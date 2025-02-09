@@ -29,9 +29,49 @@ static volatile uint32_t last_time = 0;
 static volatile bool green_state = false;
 static volatile bool blue_state = false;
 
+// Inicializando as strings do display
+char string_line1[14] = "              ";
+char string_line2[14] = "              ";
+// Contadores para percorrer as strings
+int count_line1 = 0;
+int count_line2 = 0;
+bool switch_string = false; // Variável que define qual string vai receber o caracter
+
 // Variáveis da PIO declaradas no escopo global
 PIO pio;
 uint sm;
+
+// Função que atualiza as strings do display
+void update_strings(char entry){
+    // Limpa as strings quando a entrada é "~", zerando os contadores
+    if(entry == '~'){
+        count_line1 = 0;
+        count_line2 = 0;
+        for(int i = 0; i<=13; i++){
+            string_line1[i] = ' ';
+            string_line2[i] = ' ';
+        }
+        switch_string = false;
+        return;
+    }
+
+    if(count_line1 > 13){
+        switch_string = true;
+    }
+    if(count_line2 > 13){
+        return;
+    }
+
+    if(switch_string){ 
+        string_line2[count_line2] = entry;
+        count_line2++;
+    }
+    else{
+        string_line1[count_line1] = entry;
+        count_line1++;
+    }
+
+}
 
 // Função que imprime o estado dos leds no display
 void led_state_on_display(char *led_selected, int x_pos, int y_pos, bool bool_state){
@@ -47,13 +87,6 @@ void led_state_on_display(char *led_selected, int x_pos, int y_pos, bool bool_st
         x_offset = 4;
     }
 
-    /*
-        ssd1306_draw_string(&ssd, "GREEN", 12, 42); // Verde
-        ssd1306_draw_string(&ssd, "OFF", 20, 52);  // Verde
-        ssd1306_draw_string(&ssd, "BLUE", 80, 42); // Azul
-        ssd1306_draw_string(&ssd, "OFF", 84, 52);  // Azul
-    */
-
     if(bool_state){
         char_state = "ON";
         x_offset += 4;
@@ -64,8 +97,8 @@ void led_state_on_display(char *led_selected, int x_pos, int y_pos, bool bool_st
 
     ssd1306_draw_string(&ssd, erase_string, x_pos, y_pos + y_offset); // Limpando antes de imprimir no display
 
-    ssd1306_draw_string(&ssd, led_selected, x_pos, y_pos); // Verde
-    ssd1306_draw_string(&ssd, char_state, x_pos + x_offset, y_pos + y_offset);
+    ssd1306_draw_string(&ssd, led_selected, x_pos, y_pos); // Desenha o nome do led alterado
+    ssd1306_draw_string(&ssd, char_state, x_pos + x_offset, y_pos + y_offset); // Desenha seu estado ON/OFF
 }
 
 // Função de interrupção da GPIO
@@ -152,13 +185,13 @@ int main(){
 
     while (true) {
         // Atualização do display
-        ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor); // Desenha um retângulo
-        ssd1306_draw_string(&ssd, "TAYLAN MAYCKON", 8, 8); // Desenha uma string
-        ssd1306_draw_string(&ssd, "CAATRONICS", 8, 20); // Desenha uma string
-
-        // Estado dos LEDs
+        ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor); // Desenha um frame nos contornos do display
         ssd1306_rect(&ssd, 36, 0, 127, 2, cor, cor); // Divisória entre as entradas e leds
         ssd1306_rect(&ssd, 38, 63, 2, 25, cor, cor); // Divisória entre os leds
+
+        ssd1306_draw_string(&ssd, string_line1, 8, 8); // String da linha 1
+        ssd1306_draw_string(&ssd, string_line2, 8, 20); // String da linha 2
+
         ssd1306_send_data(&ssd); // Atualiza o display
 
         // Recebimento dos caracteres via UART
@@ -166,7 +199,9 @@ int main(){
         scanf("%c", &entrada);
 
         // Atualiza MATRIZ DE LEDS, se for entrada numérica
-        atualiza_numero(entrada);
+        update_number(entrada);
+        // Atualiza a string enviada para o display
+        update_strings(entrada);
         
         sleep_ms(10); // Delay para reduzir o consumo de CPU
     }
